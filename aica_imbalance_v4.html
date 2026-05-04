@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AICA – Imbalance-Analyse</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE6;
+    --surface3: #E8E4DC;
+    --text: #1A1814;
+    --text2: #6B6660;
+    --text3: #A09C97;
+    --border: rgba(26,24,20,0.10);
+    --border2: rgba(26,24,20,0.18);
+    --ideal-a: #4A7FA5;
+    --ideal-b: #3A9E7A;
+    --ist-a: #C4622D;
+    --ist-b: #E8A830;
+    --accent: #4A7FA5;
+    --green: #1A5C30;
+    --green-bg: #D4EDDA;
+    --orange: #7A2D10;
+    --orange-bg: #FAD7C8;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container { max-width: 700px; margin: 0 auto; }
+
+  header { margin-bottom: 2rem; }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 0.4rem;
+  }
+
+  .subtitle {
+    font-size: 13.5px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* ── Mode switcher ── */
+  .mode-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.75rem;
+    background: var(--surface3);
+    border-radius: 100px;
+    padding: 4px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 100px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .mode-btn.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    font-weight: 500;
+  }
+
+  /* ── EINZELBEREICH ── */
+  #view-einzel { display: block; }
+  #view-gesamt { display: none; }
+
+  .area-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .area-tab {
+    padding: 7px 18px;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .area-tab:hover { background: var(--surface); }
+
+  .area-tab.active {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+  }
+
+  .area-tab .check {
+    display: none;
+    margin-left: 4px;
+    font-size: 11px;
+  }
+
+  .area-tab.confirmed .check { display: inline; }
+
+  .area-desc {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 1.5rem;
+    padding: 11px 15px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    line-height: 1.6;
+  }
+
+  /* Polarität-Zustimmung */
+  .polarit-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .polarit-card .card-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .polarit-card .card-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .pol-pair {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .pol-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    line-height: 1.35;
+  }
+
+  .pol-input-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pol-input-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    text-align: center;
+  }
+
+  .pol-input {
+    width: 100%;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    padding: 9px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    resize: none;
+    min-height: 62px;
+    line-height: 1.5;
+    word-break: break-word;
+    overflow: hidden;
+  }
+
+  .pol-input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+
+  .pol-input::placeholder { color: var(--text3); font-weight: 400; }
+
+  .pol-vs {
+    font-size: 16px;
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+
+  .zustimmung-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .zustimmung-label {
+    font-size: 13px;
+    color: var(--text2);
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .z-btn {
+    padding: 7px 18px;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .z-btn:hover { background: var(--surface3); }
+
+  .z-btn.ja-active {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: var(--green);
+    font-weight: 500;
+  }
+
+  .z-btn.nein-active {
+    background: var(--orange-bg);
+    color: var(--orange);
+    border-color: #C4622D;
+    font-weight: 500;
+  }
+
+  .dissens-box {
+    display: none;
+    margin-top: 1rem;
+    padding: 12px 14px;
+    background: var(--orange-bg);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(196,98,45,0.25);
+  }
+
+  .dissens-box.visible { display: block; }
+
+  .dissens-box label {
+    font-size: 12px;
+    color: var(--orange);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .dissens-box textarea {
+    width: 100%;
+    border: 1px solid rgba(196,98,45,0.3);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    background: #fff;
+    resize: vertical;
+    min-height: 72px;
+    outline: none;
+  }
+
+  .dissens-box textarea:focus { border-color: #C4622D; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .card.dimmed { opacity: 0.45; pointer-events: none; }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .begruendung {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.65;
+    margin-bottom: 1.25rem;
+    font-style: italic;
+  }
+
+  /* Bars */
+  .bars-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    justify-content: center;
+    margin-bottom: 1rem;
+    height: 150px;
+  }
+
+  .bar-col { text-align: center; width: 140px; }
+
+  .bar-name {
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.4;
+    margin-bottom: 8px;
+    min-height: 40px;
+    max-height: 60px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: center;
+    word-break: break-word;
+    hyphens: auto;
+    padding: 0 4px;
+  }
+
+  .bar-outer {
+    width: 72px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 120px;
+  }
+
+  .bar-inner {
+    border-radius: 4px 4px 0 0;
+    transition: height 0.45s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 7px;
+  }
+
+  .bar-pct {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .bar-base {
+    height: 2px;
+    background: var(--border2);
+    width: 72px;
+    margin: 0 auto;
+  }
+
+  .bar-vs {
+    width: 32px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 10px;
+    font-size: 18px;
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+
+  /* Slider */
+  .slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0.5rem;
+  }
+
+  .slider-wrap label {
+    font-size: 12px;
+    color: var(--text3);
+    min-width: 40px;
+  }
+
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border2);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--text);
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: transform 0.15s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+  .slider-readout {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 52px;
+    text-align: right;
+  }
+
+  .slider-hint {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* Gap */
+  .gap-card {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .gap-icon { font-size: 22px; flex-shrink: 0; }
+  .gap-text-wrap { flex: 1; }
+  .gap-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .gap-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .gap-badge { font-size: 13px; font-weight: 500; padding: 4px 12px; border-radius: 100px; flex-shrink: 0; }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+  }
+
+  .btn {
+    padding: 9px 18px;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn:hover { background: var(--text); color: #fff; border-color: var(--text); }
+
+  .btn-primary {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-confirm {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: var(--green);
+    font-weight: 500;
+  }
+
+  .btn-confirm:hover {
+    background: var(--green);
+    color: #fff;
+  }
+
+  .hinweis {
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.6;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── GESAMTÜBERSICHT ── */
+  .gesamt-intro {
+    font-size: 13.5px;
+    color: var(--text2);
+    line-height: 1.65;
+    margin-bottom: 1.75rem;
+  }
+
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 1.75rem;
+  }
+
+  @media (max-width: 520px) {
+    .overview-grid { grid-template-columns: 1fr; }
+  }
+
+  .ov-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1rem 1.1rem;
+  }
+
+  .ov-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ov-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .ov-polpair {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .ov-polpair strong { color: var(--text); }
+
+  /* Mini-Balken horizontal */
+  .mini-bar-wrap { margin-bottom: 5px; }
+
+  .mini-bar-label {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 3px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .mini-bar-track {
+    height: 10px;
+    background: var(--surface2);
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 2px;
+  }
+
+  .mini-bar-fill-a {
+    height: 100%;
+    border-radius: 5px 0 0 5px;
+    transition: width 0.4s ease;
+  }
+
+  .mini-gap-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top: 1px solid var(--border);
+  }
+
+  .mini-gap-label { font-size: 11px; color: var(--text3); }
+
+  .mini-gap-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* Priorisierung */
+  .prio-section {
+    margin-bottom: 1.75rem;
+  }
+
+  .prio-section h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 0.4rem;
+    color: var(--text);
+  }
+
+  .prio-section .prio-hint {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 1.1rem;
+  }
+
+  .prio-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .prio-item {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: grab;
+    user-select: none;
+    transition: box-shadow 0.15s, transform 0.15s;
+  }
+
+  .prio-item:active { cursor: grabbing; }
+  .prio-item.dragging { opacity: 0.5; transform: scale(0.98); }
+  .prio-item.drag-over { box-shadow: 0 0 0 2px var(--accent); }
+
+  .prio-rank {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--text3);
+    min-width: 28px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .prio-item.rank-1 .prio-rank { color: var(--text); }
+  .prio-item.rank-2 .prio-rank { color: var(--text2); }
+
+  .prio-drag-handle {
+    color: var(--text3);
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .prio-info { flex: 1; }
+
+  .prio-bereich {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+
+  .prio-polpair {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.35;
+  }
+
+  .prio-gap-badge {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+
+  .prio-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .prio-arrow {
+    width: 28px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .prio-arrow:hover:not(:disabled) {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+  }
+
+  .prio-arrow:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  /* Feedback toast */
+  .toast {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: var(--text);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    max-width: 320px;
+    line-height: 1.5;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 22px; }
+    .bar-col { width: 110px; }
+    .bar-outer { width: 58px; }
+    .bar-base { width: 58px; }
+    .overview-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">AICA · Coaching</div>
+    <h1>Imbalance-Analyse</h1>
+    <p class="subtitle" id="main-subtitle">Der KI-Agent hat für Ihren Fall die wichtigste Polarität identifiziert und analysiert. Bitte prüfen Sie die Einschätzungen und korrigieren Sie sie, wenn nötig.</p>
+  </header>
+
+  <!-- Mode switcher -->
+  <div class="mode-bar">
+    <button class="mode-btn active" id="btn-einzel" onclick="switchMode('einzel')">Bereichsanalyse</button>
+    <button class="mode-btn" id="btn-gesamt" onclick="switchMode('gesamt')">Gesamtübersicht & Priorisierung</button>
+  </div>
+
+  <!-- ══════════ EINZELBEREICH ══════════ -->
+  <div id="view-einzel">
+
+    <div class="area-tabs">
+      <button class="area-tab active" id="tab-0" onclick="setArea(0,this)">Bereich A <span class="check">✓</span></button>
+      <button class="area-tab" id="tab-1" onclick="setArea(1,this)">Bereich B <span class="check">✓</span></button>
+      <button class="area-tab" id="tab-2" onclick="setArea(2,this)">Bereich C <span class="check">✓</span></button>
+      <button class="area-tab" id="tab-3" onclick="setArea(3,this)">Bereich D <span class="check">✓</span></button>
+    </div>
+
+    <div class="area-desc" id="area-desc"></div>
+
+    <!-- 1. Polarität -->
+    <div class="polarit-card">
+      <div class="card-label">Schritt 1 · Polarität bestätigen</div>
+      <div class="pol-pair">
+        <div class="pol-input-wrap">
+          <div class="pol-input-label">α-Pol</div>
+          <textarea class="pol-input" id="pol-alpha-input" placeholder="Bezeichnung α-Pol …" oninput="onPolName('alpha', this.value)" rows="2"></textarea>
+        </div>
+        <div class="pol-vs">↔</div>
+        <div class="pol-input-wrap">
+          <div class="pol-input-label">ω-Pol</div>
+          <textarea class="pol-input" id="pol-omega-input" placeholder="Bezeichnung ω-Pol …" oninput="onPolName('omega', this.value)" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="zustimmung-row">
+        <span class="zustimmung-label">Ist diese Polarität (α-Pol ↔ ω-Pol) für Ihr Problem zentral?</span>
+        <button class="z-btn" id="z-ja" onclick="setZustimmung(true)">Ja ✓</button>
+        <button class="z-btn" id="z-nein" onclick="setZustimmung(false)">Nein, Änderung nötig</button>
+      </div>
+      <div class="dissens-box" id="dissens-box">
+        <label>Bitte kurz beschreiben, was fehlt oder anders sein sollte:</label>
+        <textarea id="dissens-text" placeholder="Meine Einschätzung …"></textarea>
+      </div>
+    </div>
+
+    <!-- 2. Ideal -->
+    <div class="card" id="card-ideal">
+      <div class="card-label">Schritt 2 · Idealverhältnis α-Pol : ω-Pol prüfen</div>
+      <p class="begruendung" id="ideal-begruendung"></p>
+      <div class="bars-wrap">
+        <div class="bar-col">
+          <div class="bar-name" id="ideal-name-a"></div>
+          <div class="bar-outer">
+            <div class="bar-inner" id="ideal-bar-a">
+              <span class="bar-pct" id="ideal-pct-a" style="color:#fff;"></span>
+            </div>
+          </div>
+          <div class="bar-base"></div>
+        </div>
+        <div class="bar-vs">:</div>
+        <div class="bar-col">
+          <div class="bar-name" id="ideal-name-b"></div>
+          <div class="bar-outer">
+            <div class="bar-inner" id="ideal-bar-b">
+              <span class="bar-pct" id="ideal-pct-b" style="color:#fff;"></span>
+            </div>
+          </div>
+          <div class="bar-base"></div>
+        </div>
+      </div>
+      <div class="slider-wrap">
+        <label>α-Pol</label>
+        <input type="range" min="10" max="90" step="5" value="40" id="ideal-slider" oninput="onIdeal(this.value)">
+        <span class="slider-readout" id="ideal-readout">40% : 60%</span>
+      </div>
+      <div class="slider-hint">Verschieben Sie den Regler, wenn das vorgeschlagene Idealverhältnis Ihre Situation nicht gut trifft.</div>
+    </div>
+
+    <!-- 3. Ist -->
+    <div class="card" id="card-ist">
+      <div class="card-label">Schritt 3 · Faktische Aktivierung α-Pol : ω-Pol prüfen</div>
+      <p class="begruendung" id="ist-begruendung"></p>
+      <div class="bars-wrap">
+        <div class="bar-col">
+          <div class="bar-name" id="ist-name-a"></div>
+          <div class="bar-outer">
+            <div class="bar-inner" id="ist-bar-a">
+              <span class="bar-pct" id="ist-pct-a" style="color:#fff;"></span>
+            </div>
+          </div>
+          <div class="bar-base"></div>
+        </div>
+        <div class="bar-vs">:</div>
+        <div class="bar-col">
+          <div class="bar-name" id="ist-name-b"></div>
+          <div class="bar-outer">
+            <div class="bar-inner" id="ist-bar-b">
+              <span class="bar-pct" id="ist-pct-b" style="color:#fff;"></span>
+            </div>
+          </div>
+          <div class="bar-base"></div>
+        </div>
+      </div>
+      <div class="slider-wrap">
+        <label>α-Pol</label>
+        <input type="range" min="10" max="90" step="5" value="70" id="ist-slider" oninput="onIst(this.value)">
+        <span class="slider-readout" id="ist-readout">70% : 30%</span>
+      </div>
+      <div class="slider-hint">Verschieben Sie den Regler, wenn die faktische Einschätzung Ihre Situation nicht gut trifft.</div>
+    </div>
+
+    <!-- Gap -->
+    <div class="gap-card" id="gap-card">
+      <div class="gap-icon" id="gap-icon">⚖️</div>
+      <div class="gap-text-wrap">
+        <div class="gap-title" id="gap-title"></div>
+        <div class="gap-sub" id="gap-sub"></div>
+      </div>
+      <div class="gap-badge" id="gap-badge"></div>
+    </div>
+
+    <!-- Bestätigen -->
+    <div class="btn-row">
+      <button class="btn btn-confirm" onclick="confirmBereich()">Diesen Bereich bestätigen ✓</button>
+      <button class="btn" onclick="sendDissens()" id="btn-dissens" style="display:none;">Änderungswunsch senden ↗</button>
+    </div>
+
+    <p class="hinweis">Tragen Sie die vom KI-Agenten genannten Bezeichnungen für α-Pol und ω-Pol in die Felder ein. Bestätigen oder korrigieren Sie anschließend die Schieberegler. Bestätigen Sie alle vier Bereiche, bevor Sie zur Gesamtübersicht wechseln.</p>
+
+  </div><!-- /view-einzel -->
+
+  <!-- ══════════ GESAMTÜBERSICHT ══════════ -->
+  <div id="view-gesamt">
+
+    <p class="gesamt-intro">Die folgende Übersicht zeigt alle vier Ausbalancierungsproblematiken auf einen Blick. Ziehen Sie anschließend die Karten in die Reihenfolge ihrer Wichtigkeit für Ihr Anliegen – der wichtigste Bereich steht oben.</p>
+
+    <!-- Overview-Grid -->
+    <div class="overview-grid" id="overview-grid"></div>
+
+    <!-- Priorisierung -->
+    <div class="prio-section">
+      <h2>Priorisierung</h2>
+      <p class="prio-hint">Ziehen Sie die Bereiche in die Reihenfolge ihrer Bedeutung für Ihre Problematik. Der wichtigste Bereich steht oben (Priorität 1).</p>
+      <div class="prio-list" id="prio-list"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-confirm" onclick="confirmGesamt()">Priorisierung bestätigen ✓</button>
+    </div>
+
+    <p class="hinweis">Die Priorisierung bestimmt, auf welchen Bereich der KI-Agent die Erfolgsimagination primär ausrichtet. Die weiteren Bereiche werden ergänzend berücksichtigt.</p>
+
+  </div><!-- /view-gesamt -->
+
+</div><!-- /container -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Daten ──────────────────────────────────────────────────
+const bereiche = [
+  {
+    label: 'Bereich A',
+    titel: 'Persönliche Perspektive',
+    desc: 'Wie Sie auf Ihre Situation schauen: welche innere Haltung Sie dabei einnehmen und welche Aspekte Sie in den Vordergrund stellen.',
+    polAlpha: '',
+    polOmega: '',
+    idealBegruendung: '',
+    istBegruendung: '',
+    ideal: 50,
+    ist: 50,
+    zustimmung: null,
+    dissens: '',
+    confirmed: false
+  },
+  {
+    label: 'Bereich B',
+    titel: 'Positionierung im Umfeld',
+    desc: 'Wie Sie sich zu Ihrem sozialen Umfeld verhalten: wie Sie sich positionieren, Grenzen setzen und Beziehungen gestalten.',
+    polAlpha: '',
+    polOmega: '',
+    idealBegruendung: '',
+    istBegruendung: '',
+    ideal: 50,
+    ist: 50,
+    zustimmung: null,
+    dissens: '',
+    confirmed: false
+  },
+  {
+    label: 'Bereich C',
+    titel: 'Strategien & Lösungswege',
+    desc: 'Wie Sie mit Ihrer Problematik umgehen: welche Strategien Sie einsetzen, um die Lücke zwischen Ist- und Soll-Situation zu schließen.',
+    polAlpha: '',
+    polOmega: '',
+    idealBegruendung: '',
+    istBegruendung: '',
+    ideal: 50,
+    ist: 50,
+    zustimmung: null,
+    dissens: '',
+    confirmed: false
+  },
+  {
+    label: 'Bereich D',
+    titel: 'Konkrete Aktivitäten',
+    desc: 'Was Sie tatsächlich tun oder unterlassen: die konkreten Handlungen und Verhaltensweisen im Umgang mit Ihrer Problematik.',
+    polAlpha: '',
+    polOmega: '',
+    idealBegruendung: '',
+    istBegruendung: '',
+    ideal: 50,
+    ist: 50,
+    zustimmung: null,
+    dissens: '',
+    confirmed: false
+  }
+];
+
+let current = 0;
+let prioOrder = [0, 1, 2, 3];
+let dragSrc = null;
+
+// ── Modus ──────────────────────────────────────────────────
+function switchMode(mode) {
+  document.getElementById('view-einzel').style.display = mode === 'einzel' ? 'block' : 'none';
+  document.getElementById('view-gesamt').style.display = mode === 'gesamt' ? 'block' : 'none';
+  document.getElementById('btn-einzel').classList.toggle('active', mode === 'einzel');
+  document.getElementById('btn-gesamt').classList.toggle('active', mode === 'gesamt');
+  if (mode === 'gesamt') {
+    renderOverviewGrid();
+    renderPrioList();
+  }
+}
+
+// ── Einzelbereich ──────────────────────────────────────────
+function setArea(idx, btn) {
+  current = idx;
+  document.querySelectorAll('.area-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = bereiche[idx];
+  document.getElementById('area-desc').textContent = d.label + ' – ' + d.titel + ' · ' + d.desc;
+
+  // Pol-Eingabefelder
+  document.getElementById('pol-alpha-input').value = d.polAlpha;
+  document.getElementById('pol-omega-input').value = d.polOmega;
+
+  // Balken-Labels
+  document.getElementById('ideal-name-a').textContent = d.polAlpha || 'α-Pol';
+  document.getElementById('ideal-name-b').textContent = d.polOmega || 'ω-Pol';
+  document.getElementById('ist-name-a').textContent = d.polAlpha || 'α-Pol';
+  document.getElementById('ist-name-b').textContent = d.polOmega || 'ω-Pol';
+
+  // Begründungen
+  document.getElementById('ideal-begruendung').textContent = d.idealBegruendung;
+  document.getElementById('ist-begruendung').textContent = d.istBegruendung;
+
+  // Slider
+  document.getElementById('ideal-slider').value = d.ideal;
+  document.getElementById('ist-slider').value = d.ist;
+  renderIdeal(d.ideal);
+  renderIst(d.ist);
+  renderGap();
+
+  updateZustimmungUI(d.zustimmung);
+  updateDimming();
+}
+
+function onPolName(pole, val) {
+  const d = bereiche[current];
+  if (pole === 'alpha') {
+    d.polAlpha = val;
+    document.getElementById('ideal-name-a').textContent = val || 'α-Pol';
+    document.getElementById('ist-name-a').textContent = val || 'α-Pol';
+  } else {
+    d.polOmega = val;
+    document.getElementById('ideal-name-b').textContent = val || 'ω-Pol';
+    document.getElementById('ist-name-b').textContent = val || 'ω-Pol';
+  }
+}
+
+function setZustimmung(ja) {
+  const d = bereiche[current];
+  d.zustimmung = ja;
+  updateZustimmungUI(ja);
+  updateDimming();
+}
+
+function updateZustimmungUI(val) {
+  const ja = document.getElementById('z-ja');
+  const nein = document.getElementById('z-nein');
+  const dissens = document.getElementById('dissens-box');
+  const btnD = document.getElementById('btn-dissens');
+
+  ja.classList.toggle('ja-active', val === true);
+  nein.classList.toggle('nein-active', val === false);
+  dissens.classList.toggle('visible', val === false);
+  btnD.style.display = val === false ? 'flex' : 'none';
+}
+
+function updateDimming() {
+  const d = bereiche[current];
+  const noAnswer = d.zustimmung === null;
+  const nein = d.zustimmung === false;
+  document.getElementById('card-ideal').classList.toggle('dimmed', noAnswer || nein);
+  document.getElementById('card-ist').classList.toggle('dimmed', noAnswer || nein);
+  document.getElementById('gap-card').style.opacity = (noAnswer || nein) ? '0.4' : '1';
+}
+
+function onIdeal(v) {
+  bereiche[current].ideal = parseInt(v);
+  renderIdeal(v);
+  renderGap();
+}
+
+function onIst(v) {
+  bereiche[current].ist = parseInt(v);
+  renderIst(v);
+  renderGap();
+}
+
+function renderIdeal(v) {
+  v = parseInt(v);
+  const o = 100 - v;
+  const maxH = 110, minH = 10;
+  const hA = minH + (v - 10) / 80 * (maxH - minH);
+  const hB = minH + (o - 10) / 80 * (maxH - minH);
+  document.getElementById('ideal-bar-a').style.height = Math.max(minH, hA) + 'px';
+  document.getElementById('ideal-bar-a').style.background = '#4A7FA5';
+  document.getElementById('ideal-bar-b').style.height = Math.max(minH, hB) + 'px';
+  document.getElementById('ideal-bar-b').style.background = '#3A9E7A';
+  document.getElementById('ideal-pct-a').textContent = v + '%';
+  document.getElementById('ideal-pct-b').textContent = o + '%';
+  document.getElementById('ideal-readout').textContent = v + '% : ' + o + '%';
+}
+
+function renderIst(v) {
+  v = parseInt(v);
+  const o = 100 - v;
+  const maxH = 110, minH = 10;
+  const hA = minH + (v - 10) / 80 * (maxH - minH);
+  const hB = minH + (o - 10) / 80 * (maxH - minH);
+  document.getElementById('ist-bar-a').style.height = Math.max(minH, hA) + 'px';
+  document.getElementById('ist-bar-a').style.background = '#C4622D';
+  document.getElementById('ist-bar-b').style.height = Math.max(minH, hB) + 'px';
+  document.getElementById('ist-bar-b').style.background = '#E8A830';
+  document.getElementById('ist-pct-a').textContent = v + '%';
+  document.getElementById('ist-pct-b').textContent = o + '%';
+  document.getElementById('ist-readout').textContent = v + '% : ' + o + '%';
+}
+
+function renderGap() {
+  const d = bereiche[current];
+  const diff = d.ist - d.ideal;
+  const absDiff = Math.abs(diff);
+  const badge = document.getElementById('gap-badge');
+  const title = document.getElementById('gap-title');
+  const sub = document.getElementById('gap-sub');
+  const icon = document.getElementById('gap-icon');
+
+  if (absDiff <= 5) {
+    badge.textContent = '± 0';
+    badge.style.background = '#D4EDDA';
+    badge.style.color = '#1A5C30';
+    title.textContent = 'Ist- und Idealverhältnis stimmen überein';
+    sub.textContent = 'Die aktuelle Aktivierung entspricht dem situationsangemessenen Ideal.';
+    icon.textContent = '✓';
+  } else if (diff > 0) {
+    badge.textContent = 'α-Pol +' + absDiff + '%';
+    badge.style.background = '#FAD7C8';
+    badge.style.color = '#7A2D10';
+    title.textContent = 'α-Pol wird stärker aktiviert als situativ sinnvoll';
+    sub.textContent = 'Abstand: ' + absDiff + ' Prozentpunkte. α-Pol überwiegt das situationsangemessene Ideal.';
+    icon.textContent = '⚠';
+  } else {
+    badge.textContent = 'α-Pol −' + absDiff + '%';
+    badge.style.background = '#FEF3C7';
+    badge.style.color = '#78520A';
+    title.textContent = 'α-Pol wird schwächer aktiviert als situativ sinnvoll';
+    sub.textContent = 'Abstand: ' + absDiff + ' Prozentpunkte. ω-Pol überwiegt das situationsangemessene Ideal.';
+    icon.textContent = '⚠';
+  }
+}
+
+function confirmBereich() {
+  const d = bereiche[current];
+  if (d.zustimmung !== true) {
+    showToast('Bitte bestätigen Sie zuerst, ob die Polarität für Ihr Problem zentral ist (Ja / Nein).');
+    return;
+  }
+  if (!d.polAlpha.trim() || !d.polOmega.trim()) {
+    showToast('Bitte tragen Sie zuerst die Bezeichnungen für α-Pol und ω-Pol ein.');
+    return;
+  }
+  d.confirmed = true;
+  document.getElementById('tab-' + current).classList.add('confirmed');
+
+  const msg =
+    d.label + ' bestätigt\n' +
+    'α-Pol: ' + d.polAlpha + '\n' +
+    'ω-Pol: ' + d.polOmega + '\n' +
+    'Idealverhältnis α-Pol : ω-Pol: ' + d.ideal + '% : ' + (100 - d.ideal) + '%\n' +
+    'Faktische Aktivierung α-Pol : ω-Pol: ' + d.ist + '% : ' + (100 - d.ist) + '%';
+  postOrToast(msg, 'aica_confirm_bereich', { bereich: d.label, polAlpha: d.polAlpha, polOmega: d.polOmega, ideal: d.ideal, ist: d.ist });
+}
+
+function sendDissens() {
+  const d = bereiche[current];
+  const txt = document.getElementById('dissens-text').value.trim();
+  d.dissens = txt;
+  const msg = d.label + ' · Polarität nicht passend · Begründung: ' + (txt || '(keine Angabe)');
+  postOrToast(msg, 'aica_dissens', { bereich: d.label, dissens: txt });
+}
+
+// ── Gesamtübersicht ────────────────────────────────────────
+function gapColor(d) {
+  const diff = Math.abs(d.ist - d.ideal);
+  if (diff <= 5) return { bg: '#D4EDDA', color: '#1A5C30', text: '± 0 PP' };
+  if (d.ist > d.ideal) return { bg: '#FAD7C8', color: '#7A2D10', text: 'α-Pol +' + diff + ' PP' };
+  return { bg: '#FEF3C7', color: '#78520A', text: 'α-Pol −' + diff + ' PP' };
+}
+
+function renderOverviewGrid() {
+  const grid = document.getElementById('overview-grid');
+  grid.innerHTML = '';
+  bereiche.forEach((d, i) => {
+    const gap = gapColor(d);
+    const istPct = d.ist;
+    const idealPct = d.ideal;
+    const alphaLabel = d.polAlpha || 'α-Pol';
+    const omegaLabel = d.polOmega || 'ω-Pol';
+    const card = document.createElement('div');
+    card.className = 'ov-card';
+    card.innerHTML = `
+      <div class="ov-title">${d.label}<span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text2)"> ${d.titel}</span></div>
+      <div class="ov-polpair"><strong>${alphaLabel}</strong> ↔ <strong>${omegaLabel}</strong></div>
+      <div class="mini-bar-wrap">
+        <div class="mini-bar-label"><span>Ideal</span><span>${idealPct}% : ${100 - idealPct}%</span></div>
+        <div class="mini-bar-track">
+          <div class="mini-bar-fill-a" style="width:${idealPct}%;background:#4A7FA5;"></div>
+          <div style="height:100%;flex:1;background:#3A9E7A;"></div>
+        </div>
+      </div>
+      <div class="mini-bar-wrap">
+        <div class="mini-bar-label"><span>Faktisch</span><span>${istPct}% : ${100 - istPct}%</span></div>
+        <div class="mini-bar-track">
+          <div class="mini-bar-fill-a" style="width:${istPct}%;background:#C4622D;"></div>
+          <div style="height:100%;flex:1;background:#E8A830;"></div>
+        </div>
+      </div>
+      <div class="mini-gap-row">
+        <span class="mini-gap-label">Ausbalancierungsproblem</span>
+        <span class="mini-gap-badge" style="background:${gap.bg};color:${gap.color};">${gap.text}</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderPrioList() {
+  const list = document.getElementById('prio-list');
+  list.innerHTML = '';
+  prioOrder.forEach((idx, rank) => {
+    const d = bereiche[idx];
+    const gap = gapColor(d);
+    const alphaLabel = d.polAlpha || 'α-Pol';
+    const omegaLabel = d.polOmega || 'ω-Pol';
+    const isFirst = rank === 0;
+    const isLast = rank === prioOrder.length - 1;
+    const item = document.createElement('div');
+    item.className = 'prio-item rank-' + (rank + 1);
+    item.dataset.idx = idx;
+    item.innerHTML = `
+      <div class="prio-rank">${rank + 1}</div>
+      <div class="prio-info">
+        <div class="prio-bereich">${d.label}</div>
+        <div class="prio-polpair">${alphaLabel} ↔ ${omegaLabel}</div>
+      </div>
+      <span class="prio-gap-badge" style="background:${gap.bg};color:${gap.color};">${gap.text}</span>
+      <div class="prio-arrows">
+        <button class="prio-arrow" ${isFirst ? 'disabled' : ''} onclick="movePrio(${rank}, -1)" title="Höher priorisieren">▲</button>
+        <button class="prio-arrow" ${isLast ? 'disabled' : ''} onclick="movePrio(${rank}, 1)" title="Niedriger priorisieren">▼</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function movePrio(rank, direction) {
+  const newRank = rank + direction;
+  if (newRank < 0 || newRank >= prioOrder.length) return;
+  const tmp = prioOrder[rank];
+  prioOrder[rank] = prioOrder[newRank];
+  prioOrder[newRank] = tmp;
+  renderPrioList();
+}
+
+function confirmGesamt() {
+  const prio = prioOrder.map((idx, rank) => {
+    const d = bereiche[idx];
+    return {
+      rang: rank + 1,
+      bereich: d.label,
+      polAlpha: d.polAlpha || 'α-Pol',
+      polOmega: d.polOmega || 'ω-Pol',
+      ideal: d.ideal,
+      ist: d.ist
+    };
+  });
+  const lines = prio.map(p =>
+    p.rang + '. ' + p.bereich + '\n' +
+    '   α-Pol: ' + p.polAlpha + ' / ω-Pol: ' + p.polOmega + '\n' +
+    '   Ideal: ' + p.ideal + '% : ' + (100 - p.ideal) + '% · Faktisch: ' + p.ist + '% : ' + (100 - p.ist) + '%'
+  );
+  const msg = 'Priorisierung bestätigt:\n' + lines.join('\n');
+  postOrToast(msg, 'aica_prio', { priorisierung: prio });
+}
+
+// ── Utility ────────────────────────────────────────────────
+function postOrToast(msg, type, data) {
+  if (typeof window.sendPrompt === 'function') {
+    window.sendPrompt(msg);
+    showToast('Daten wurden an den Coach-Agenten gesendet ✓');
+  } else if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type, ...data, message: msg }, '*');
+    showToast('Daten wurden übermittelt ✓');
+  } else if (window.opener) {
+    window.opener.postMessage({ type, ...data, message: msg }, '*');
+    showToast('Daten wurden übermittelt ✓');
+  } else {
+    showCopyBox(msg);
+  }
+}
+
+function showCopyBox(msg) {
+  let box = document.getElementById('copy-box');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'copy-box';
+    box.style.cssText = 'position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);width:min(96vw,600px);background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:0 4px 24px rgba(0,0,0,0.12);z-index:999;font-family:"DM Sans",sans-serif;';
+    document.body.appendChild(box);
+  }
+  box.innerHTML = `
+    <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;">✓ Gespeichert – bitte in den Chat kopieren:</div>
+    <textarea readonly style="width:100%;font-family:'DM Sans',sans-serif;font-size:12.5px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;resize:none;outline:none;line-height:1.6;" rows="${Math.min(10, msg.split('\n').length + 1)}">${msg}</textarea>
+    <div style="display:flex;gap:8px;margin-top:0.6rem;">
+      <button onclick="navigator.clipboard.writeText(document.querySelector('#copy-box textarea').value).then(()=>{this.textContent='Kopiert ✓'})" style="flex:1;padding:8px;border-radius:100px;border:1px solid var(--border2);background:var(--text);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">In Zwischenablage kopieren</button>
+      <button onclick="document.getElementById('copy-box').style.display='none'" style="padding:8px 16px;border-radius:100px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Schließen</button>
+    </div>
+  `;
+  box.style.display = 'block';
+}
+
+// ── Init ────────────────────────────────────────────────────
+setArea(0, document.getElementById('tab-0'));
+</script>
+</body>
+</html>
