@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AICA · Idealtypische Zielerreichungsprobleme von Einzelpersonen</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#F7F5F0; --surface:#FFFFFF; --border:#DDD8CE; --text:#1C1A17;
+    --muted:#7A7468; --accent:#1F3864; --accent2:#2E6B9E; --success:#2D6A4F; --radius:6px;
+  }
+  body { font-family:'Source Sans 3',sans-serif; font-size:15px; background:var(--bg); color:var(--text); line-height:1.7; padding:0 1rem 5rem; }
+  .site-header { max-width:720px; margin:0 auto; padding:2.6rem 0 1.1rem; border-bottom:1px solid var(--border); }
+  .site-header .label { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:.35rem; }
+  .site-header h1 { font-family:'Lora',serif; font-size:21px; font-weight:600; color:var(--accent); }
+  .site-header .subtitle { font-size:13px; color:var(--muted); margin-top:.25rem; font-style:italic; }
+  .tab-nav { max-width:720px; margin:0 auto; display:flex; border-bottom:2px solid var(--border); margin-bottom:2.4rem; }
+  .tab-btn { padding:.75rem 1.4rem; font-family:'Source Sans 3',sans-serif; font-size:14px; font-weight:600; color:var(--muted); background:none; border:none; border-bottom:3px solid transparent; margin-bottom:-2px; cursor:pointer; transition:color .2s,border-color .2s; }
+  .tab-btn:hover { color:var(--accent); }
+  .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+  .section { max-width:720px; margin:0 auto 2.8rem; }
+  .section-head { font-family:'Lora',serif; font-size:15px; font-weight:600; color:var(--accent); border-left:3px solid var(--accent); padding-left:.75rem; margin-bottom:1.3rem; }
+  .step-label { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem; }
+  .intro-box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.9rem 1.1rem; font-size:13px; color:var(--muted); line-height:1.75; margin-bottom:1.6rem; }
+  .q-block { margin-bottom:1.5rem; }
+  .q-label-row { display:flex; align-items:flex-start; gap:.45rem; margin-bottom:.5rem; }
+  .q-num { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--accent); color:#fff; font-size:11px; font-weight:600; flex-shrink:0; margin-top:2px; }
+  .q-label-text { flex:1; font-size:14px; font-weight:600; }
+  .q-note { font-weight:400; color:var(--muted); font-size:13px; }
+  .slider-wrap { padding:.15rem 0; }
+  .slider-labels { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:.25rem; }
+  input[type=range] { width:100%; accent-color:var(--accent); cursor:pointer; }
+  .slider-val { text-align:center; font-size:24px; font-family:'Lora',serif; font-weight:600; color:var(--accent); margin-top:.2rem; }
+  textarea { width:100%; border:1px solid var(--border); border-radius:var(--radius); padding:.65rem .9rem; font-family:'Source Sans 3',sans-serif; font-size:14px; color:var(--text); background:var(--surface); resize:vertical; min-height:88px; line-height:1.65; transition:border-color .2s; }
+  textarea:focus { outline:none; border-color:var(--accent2); }
+  .divider { max-width:720px; margin:2rem auto; border:none; border-top:1px solid var(--border); }
+  .img-intro { font-size:13px; color:var(--muted); line-height:1.75; margin-bottom:1.1rem; }
+  .img-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:.5rem; margin-bottom:1.1rem; }
+  .img-tile { position:relative; aspect-ratio:4/3; background:var(--border); border-radius:var(--radius); overflow:hidden; cursor:pointer; border:2px solid transparent; transition:border-color .2s,transform .15s; }
+  .img-tile:hover { transform:scale(1.04); border-color:var(--accent2); }
+  .img-tile.selected { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent); }
+  .img-tile .tile-cover { position:absolute; inset:0; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; font-family:'Lora',serif; font-weight:600; transition:background .2s; }
+  .img-tile:hover .tile-cover { background:var(--accent2); }
+  .img-tile.selected .tile-cover { background:var(--accent2); }
+  .img-display { display:none; margin-bottom:1.2rem; border-radius:var(--radius); overflow:hidden; border:2px solid var(--accent); }
+  .img-display.visible { display:block; }
+  .img-display img { width:100%; max-height:420px; object-fit:contain; background:#111; display:block; }
+  .img-display-caption { background:var(--accent); color:#fff; font-size:12px; padding:.3rem .8rem; }
+  .gap-text { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.1rem 1.3rem; margin-bottom:1.3rem; display:none; }
+  .gap-text.visible { display:block; }
+  .gap-item { margin-bottom:1rem; }
+  .gap-item p { font-size:14px; line-height:1.8; margin-bottom:.35rem; }
+  .gap-item p em { font-family:'Lora',serif; font-style:italic; color:var(--accent); }
+  .gap-item textarea { min-height:68px; }
+  .send-btn { display:inline-flex; align-items:center; gap:.4rem; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); padding:.5rem 1.1rem; font-family:'Source Sans 3',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:background .2s; margin-top:.4rem; }
+  .send-btn:hover { background:var(--accent2); }
+  .send-confirm { font-size:13px; color:var(--success); font-weight:600; margin-top:.5rem; display:none; }
+  .send-confirm.visible { display:block; }
+  .export-wrap { max-width:720px; margin:2.2rem auto 0; }
+  .export-btn { background:transparent; border:1.5px solid var(--accent); color:var(--accent); border-radius:var(--radius); padding:.5rem 1.1rem; font-family:'Source Sans 3',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; }
+  .export-btn:hover { background:var(--accent); color:#fff; }
+  #export-result { margin-top:1rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.2rem; font-size:13px; white-space:pre-wrap; line-height:1.75; display:none; }
+  #export-result.visible { display:block; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="label">AICA · Coaching</div>
+  <h1>Idealtypische Zielerreichungsprobleme von Einzelpersonen</h1>
+  <div class="subtitle">Marketingbereich 1 — aica04.1</div>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('ist',this)">Ist-Situation</button>
+  <button class="tab-btn" onclick="showTab('soll',this)">Soll-Situation</button>
+</nav>
+
+<!-- ══════════════ TAB IST ══════════════ -->
+<div class="tab-panel active" id="tab-ist">
+
+  <section class="section">
+    <div class="step-label">Schritt 1</div>
+    <div class="section-head">Beschreibung der Ist-Situation</div>
+
+    <div class="q-block">
+      <div class="q-label-row"><span class="q-num">1</span><span class="q-label-text">Beschreibe kurz die wichtigsten Inhalte bzw. Methoden der wichtigsten Einzeldienstleistung, die du bestimmten Einzelpersonen anbietest bzw. anbieten willst.</span></div>
+      <textarea id="q1" placeholder="Beschreibe deine Dienstleistung …"></textarea>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label-row"><span class="q-num">2</span><span class="q-label-text">Welche Veränderungen soll diese deine Dienstleistung bei diesen Einzelpersonen bewirken?</span></div>
+      <textarea id="q2" placeholder="Welche Veränderungen soll deine Dienstleistung bewirken …"></textarea>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label-row"><span class="q-num">3</span><span class="q-label-text">Was ist der wichtigste Pain Point bzw. das wichtigste bisher nicht hinreichend erreichte Weg-von-Ziel der betreffenden Einzelperson, für dessen Erreichung deine Dienstleistung eine ideale Lösung ist?</span></div>
+      <textarea id="q3" placeholder="Beschreibe den wichtigsten Pain Point / das wichtigste Weg-von-Ziel …"></textarea>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label-row"><span class="q-num">4</span><span class="q-label-text">Wie wichtig ist dieses Weg-von-Ziel für diese Person?</span></div>
+      <div class="slider-wrap">
+        <div class="slider-labels"><span>0 — völlig unwichtig</span><span>10 — extremst wichtig</span></div>
+        <input type="range" id="sl1" min="0" max="10" value="5" step="1" oninput="document.getElementById('sv1').textContent=this.value">
+        <div class="slider-val" id="sv1">5</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label-row"><span class="q-num">5</span><span class="q-label-text">Was ist das wichtigste bisher nicht hinreichend erreichte Hin-zu-Ziel (Positivwunsch) der betreffenden Einzelperson, für dessen Erreichung deine Dienstleistung eine ideale Lösung ist?</span></div>
+      <textarea id="q5" placeholder="Beschreibe das wichtigste Hin-zu-Ziel / den wichtigsten Positivwunsch …"></textarea>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label-row"><span class="q-num">6</span><span class="q-label-text">Wie wichtig ist dieses Hin-zu-Ziel für diese Person?</span></div>
+      <div class="slider-wrap">
+        <div class="slider-labels"><span>0 — völlig unwichtig</span><span>10 — extremst wichtig</span></div>
+        <input type="range" id="sl2" min="0" max="10" value="5" step="1" oninput="document.getElementById('sv2').textContent=this.value">
+        <div class="slider-val" id="sv2">5</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section class="section">
+    <div class="step-label">Schritt 2</div>
+    <div class="section-head">Bildreflexion</div>
+    <p class="img-intro">Versetze dich jetzt bitte in die oben ins Auge gefassten Personen, und zwar in die Stimmung, die sie mit Blick auf ihre oben beschriebene Zielerreichungsproblematik haben — d.h. die sich bei ihnen einstellt, wenn sie daran denken, dass die Weg-von-Ziele und Hin-zu-Ziele, die ihnen wichtig sind, sie diese momentan nicht erreichen können.<br><br>Schau dir dann die Bilder an, die hinter den durchnummerierten Kacheln liegen und die du mit einem Klick öffnen kannst. Wähle dasjenige Bild aus, das die größte Ähnlichkeit mit dieser Stimmung hat.</p>
+    <div class="img-grid" id="grid-ist"></div>
+    <div class="img-display" id="display-ist">
+      <img id="display-ist-img" src="" alt="Gewähltes Bild">
+      <div class="img-display-caption" id="display-ist-caption"></div>
+    </div>
+    <div class="gap-text" id="gap-ist">
+      <div class="gap-item">
+        <p><em>Die Stimmung, die sich bei mir mit Blick auf meine Problematik (d.h. Nicht-Erreichung der oben genannten wichtigen Weg-von-Ziele und Hin-zu-Ziele) einstellt, wird durch das obige Bild gut visualisiert,</em> weil …</p>
+        <textarea id="gi1"></textarea>
+      </div>
+      <div class="gap-item">
+        <p><em>Ich sehe auf dem Bild</em> folgendes:</p>
+        <textarea id="gi2"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>Wenn ich mich erlebensmäßig in das Bild hineinversetze und mir vorstelle, dass das, was ich auf dem Bild sehe, die Wirklichkeit ist, die mich gerade umgibt, dann <em>richtet sich mein Sehen auf</em> …</p>
+        <textarea id="gi3"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>… gleichzeitig <em>höre ich</em> …</p>
+        <textarea id="gi4"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>… ich <em>fühle auf meiner Haut</em> …</p>
+        <textarea id="gi5"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>… und ich <em>rieche</em> …</p>
+        <textarea id="gi6"></textarea>
+      </div>
+      <div class="gap-item">
+        <p><em>Das alles erinnert mich stark an</em> …</p>
+        <textarea id="gi7"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>… und dabei <em>höre ich tief in mir eine Stimme, die mir sagt:</em></p>
+        <textarea id="gi8"></textarea>
+      </div>
+      <div style="margin-top:1rem">
+        <button class="export-btn" onclick="showTab('soll', document.querySelectorAll('.tab-btn')[1]); window.scrollTo({top:0,behavior:'smooth'})">Weiter zur gewünschten Soll-Situation →</button>
+      </div>
+  </section>
+</div>
+
+<!-- ══════════════ TAB SOLL ══════════════ -->
+<div class="tab-panel" id="tab-soll">
+
+  <section class="section">
+    <div class="step-label">Bildreflexion</div>
+    <div class="section-head">Soll-Situation</div>
+    <p class="img-intro">Wie fühlt es sich an, wenn du dir vorstellst, dass du deine oben beschriebenen Weg-von-Ziele und Hin-zu-Ziele perfekt erreicht hast?<br><br>Schau dir dann die Bilder an, die hinter den durchnummerierten Kacheln liegen und die du mit einem Klick öffnen kannst. Wähle dasjenige Bild aus, das die größte Ähnlichkeit mit dieser Stimmung hat.</p>
+    <div class="img-grid" id="grid-soll"></div>
+    <div class="img-display" id="display-soll">
+      <img id="display-soll-img" src="" alt="Gewähltes Bild">
+      <div class="img-display-caption" id="display-soll-caption"></div>
+    </div>
+    <div class="gap-text" id="gap-soll">
+      <div class="gap-item">
+        <p><em>Die Stimmung, die sich bei mir einstellt, wenn ich mir vorstelle, dass ich meine Weg-von-Ziele und Hin-zu-Ziele perfekt erreicht habe, wird durch das obige Bild gut visualisiert,</em> weil …</p>
+        <textarea id="gs1"></textarea>
+      </div>
+      <div class="gap-item">
+        <p><em>Ich sehe auf dem Bild</em> folgendes:</p>
+        <textarea id="gs2"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>Wenn ich mich erlebensmäßig in das Bild hineinversetze und mir vorstelle, dass das, was ich auf dem Bild sehe, die Wirklichkeit ist, die mich gerade umgibt, dann <em>richtet sich mein Sehen auf</em> …</p>
+        <textarea id="gs3"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>… gleichzeitig <em>höre ich</em> …</p>
+        <textarea id="gs4"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>… ich <em>fühle auf meiner Haut</em> …</p>
+        <textarea id="gs5"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>… und ich <em>rieche</em> …</p>
+        <textarea id="gs6"></textarea>
+      </div>
+      <div class="gap-item">
+        <p><em>Das alles erinnert mich stark an</em> …</p>
+        <textarea id="gs7"></textarea>
+      </div>
+      <div class="gap-item">
+        <p>… und dabei <em>höre ich tief in mir eine Stimme, die mich zu etwas Bestimmtem auffordert, indem sie sagt:</em></p>
+        <textarea id="gs8"></textarea>
+      </div>
+      <div style="margin-top:1.2rem">
+        <button class="export-btn" onclick="exportAll()">Ist- und Soll-Situation kopieren ↗</button>
+        <div id="export-result" style="margin-top:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;font-size:13px;white-space:pre-wrap;line-height:1.75;display:none"></div>
+      </div>
+
+<script>
+const BASE = 'https://harald-24041950-ocl.github.io/aica-tools/';
+const IST_IMGS = Array.from({length: 29}, (_, i) => BASE + 'img/ist/ist_' + String(i+1).padStart(2,'0') + '.jpg');
+const SOLL_IMGS = Array.from({length: 34}, (_, i) => BASE + 'img/soll/soll_' + String(i+1).padStart(2,'0') + '.jpg');
+
+function buildGrid(gridId, imgs, section) {
+  const grid = document.getElementById(gridId);
+  const display = document.getElementById('display-' + section);
+  const displayImg = document.getElementById('display-' + section + '-img');
+  const displayCaption = document.getElementById('display-' + section + '-caption');
+  const gapEl = document.getElementById('gap-' + section);
+
+  imgs.forEach((src, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'img-tile';
+    tile.dataset.idx = i;
+    tile.dataset.src = src;
+    tile.innerHTML = `<div class="tile-cover">${i + 1}</div>`;
+    tile.addEventListener('click', () => {
+      grid.querySelectorAll('.img-tile').forEach(t => t.classList.remove('selected'));
+      tile.classList.add('selected');
+      displayImg.src = src;
+      displayCaption.textContent = 'Bild ' + (i + 1);
+      display.classList.add('visible');
+      gapEl.classList.add('visible');
+      setTimeout(() => display.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    });
+    grid.appendChild(tile);
+  });
+}
+
+buildGrid('grid-ist', IST_IMGS, 'ist');
+buildGrid('grid-soll', SOLL_IMGS, 'soll');
+
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function sendSection(s) { document.getElementById('confirm-' + s).classList.add('visible'); }
+
+function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function exportAndSwitch() {
+  exportAll();
+  const sollBtn = document.querySelector('.tab-btn:nth-child(2)');
+  showTab('soll', sollBtn);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function exportAll() {
+  const si = document.querySelector('#grid-ist .img-tile.selected');
+  const ss = document.querySelector('#grid-soll .img-tile.selected');
+  const text = [
+    'AICA · Idealtypische Zielerreichungsprobleme von Einzelpersonen',
+    '═'.repeat(55), '',
+    'IST-SITUATION — Schritt 1: Beschreibung', '',
+    `1. Dienstleistung (Inhalte / Methoden):\n   ${v('q1')}`,
+    `2. Angestrebte Veränderungen bei den Einzelpersonen:\n   ${v('q2')}`,
+    `3. Wichtigster Pain Point / Weg-von-Ziel:\n   ${v('q3')}`,
+    `4. Wichtigkeit des Weg-von-Ziels (0–10): ${v('sv1')}`,
+    `5. Wichtigstes Hin-zu-Ziel (Positivwunsch):\n   ${v('q5')}`,
+    `6. Wichtigkeit des Hin-zu-Ziels (0–10): ${v('sv2')}`,
+    '',
+    'IST-SITUATION — Schritt 2: Bildreflexion',
+    `Gewähltes Bild: ${si ? 'Bild ' + (parseInt(si.dataset.idx) + 1) : 'keines gewählt'}`,
+    `Die Stimmung wird visualisiert, weil: ${v('gi1')}`,
+    `Ich sehe auf dem Bild: ${v('gi2')}`,
+    `Mein Sehen richtet sich auf: ${v('gi3')}`,
+    `Ich höre: ${v('gi4')}`,
+    `Ich fühle auf meiner Haut: ${v('gi5')}`,
+    `Ich rieche: ${v('gi6')}`,
+    `Das erinnert mich an: ${v('gi7')}`,
+    `Stimme in mir: ${v('gi8')}`,
+    '',
+    '─'.repeat(55), '',
+    'SOLL-SITUATION — Bildreflexion',
+    `Gewähltes Bild: ${ss ? 'Bild ' + (parseInt(ss.dataset.idx) + 1) : 'keines gewählt'}`,
+    `Die Stimmung wird visualisiert, weil: ${v('gs1')}`,
+    `Ich sehe auf dem Bild: ${v('gs2')}`,
+    `Mein Sehen richtet sich auf: ${v('gs3')}`,
+    `Ich höre: ${v('gs4')}`,
+    `Ich fühle auf meiner Haut: ${v('gs5')}`,
+    `Ich rieche: ${v('gs6')}`,
+    `Das erinnert mich an: ${v('gs7')}`,
+    `Stimme in mir: ${v('gs8')}`,
+  ].join('\n');
+  const el = document.getElementById('export-result');
+  el.textContent = text;
+  el.classList.add('visible');
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+</script>
+</body>
+</html>
